@@ -1,0 +1,79 @@
+# =========================
+# Java / Maven
+# =========================
+target/
+*.class
+*.jar
+*.war
+*.ear
+dependency-reduced-pom.xml
+
+# =========================
+# IntelliJ IDEA
+# =========================
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# =========================
+# VS Code
+# =========================
+.vscode/
+
+# =========================
+# Eclipse / Java IDE metadata
+# =========================
+.settings/
+.classpath
+.project
+
+# =========================
+# Environment / Secrets
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# Test reports
+# =========================
+allure-results/
+allure-report/
+surefire-reports/
+failsafe-reports/
+
+# =========================
+# Selenium / Test evidence
+# =========================
+screenshots/
+videos/
+downloads/
+
+# =========================
+# Performance / k6
+# =========================
+performance/results/
+*.jsonl
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.temp
+*.swp
+*~

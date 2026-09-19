@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "client_order_id",
+    "created_at",
+    "updated_at",
+    "symbol",
+    "asset_class",
+    "qty",
+    "filled_qty",
+    "type",
+    "side",
+    "time_in_force",
+    "limit_price",
+    "status",
+    "extended_hours"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "client_order_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "symbol": {
+      "type": "string",
+      "minLength": 1
+    },
+    "asset_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "qty": {
+      "type": "string"
+    },
+    "filled_qty": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "side": {
+      "type": "string"
+    },
+    "time_in_force": {
+      "type": "string"
+    },
+    "limit_price": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extended_hours": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

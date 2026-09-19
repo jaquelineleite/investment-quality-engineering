@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "id",
+    "account_number",
+    "status",
+    "currency",
+    "cash",
+    "buying_power",
+    "portfolio_value",
+    "trading_blocked"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "account_number": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 1
+    },
+    "cash": {
+      "type": "string"
+    },
+    "buying_power": {
+      "type": "string"
+    },
+    "portfolio_value": {
+      "type": "string"
+    },
+    "trading_blocked": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}
