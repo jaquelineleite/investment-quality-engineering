@@ -1,0 +1,65 @@
+name: Release Quality Gate
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-quality-gate:
+    name: Release Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      TEST_ENV: paper
+      ALPACA_BASE_URL: https://paper-api.alpaca.markets
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          if [ -z "$ALPACA_API_KEY" ]; then
+            echo "::error::Missing ALPACA_API_KEY secret"
+            exit 1
+          fi
+
+          if [ -z "$ALPACA_SECRET_KEY" ]; then
+            echo "::error::Missing ALPACA_SECRET_KEY secret"
+            exit 1
+          fi
+
+      - name: Run release regression
+        run: >
+          mvn
+          --batch-mode
+          --no-transfer-progress
+          clean
+          test
+
+      - name: Upload release test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-surefire-reports
+          path: |
+            **/target/surefire-reports/**
+          if-no-files-found: warn
+          retention-days: 30
