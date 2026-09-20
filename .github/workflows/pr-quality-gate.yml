@@ -26,7 +26,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Set up Java 21
+
+      - name: Security gate - tracked secrets
+        run: python3 scripts/security/security_gate.py      - name: Set up Java 21
         uses: actions/setup-java@v6
         with:
           distribution: temurin

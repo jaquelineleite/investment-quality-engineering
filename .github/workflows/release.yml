@@ -32,6 +32,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Security gate - tracked secrets
+        run: python3 scripts/security/security_gate.py
       - name: Setup Java
         uses: actions/setup-java@v6
         with:
