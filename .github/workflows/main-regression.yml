@@ -56,15 +56,26 @@ jobs:
 
           echo $! > /tmp/ui-lab.pid
 
-          curl \
-            --fail \
-            --silent \
-            --show-error \
-            --retry 10 \
-            --retry-delay 1 \
-            http://127.0.0.1:8081/ \
-            > /dev/null
+          for attempt in {1..15}; do
 
+            if curl \
+              --fail \
+              --silent \
+              http://127.0.0.1:8081/ \
+              > /dev/null; then
+
+              echo "UI lab is ready."
+              exit 0
+
+            fi
+
+            echo "Waiting for UI lab... attempt ${attempt}/15"
+            sleep 1
+          done
+
+          echo "UI lab failed to start."
+          cat /tmp/ui-lab.log || true
+          exit 1
       - name: Run API and UI regression
         run: |
           mvn \
