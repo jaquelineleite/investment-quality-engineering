@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - main
-
   workflow_dispatch:
-
-permissions:
-  contents: read
 
 concurrency:
   group: main-regression-${{ github.ref }}
@@ -16,9 +12,7 @@ concurrency:
 
 jobs:
   regression:
-    name: Main Regression
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
 
     env:
       TEST_ENV: paper
@@ -26,34 +20,60 @@ jobs:
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
 
+      UI_BASE_URL: http://127.0.0.1:8081
+      HEADLESS: "true"
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Java 21
+      - name: Setup Java
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       - name: Validate required secrets
         shell: bash
         run: |
-          if [ -z "$ALPACA_API_KEY" ]; then
-            echo "::error::Missing ALPACA_API_KEY secret"
+          test -n "$ALPACA_API_KEY" || {
+            echo "ALPACA_API_KEY is missing"
             exit 1
-          fi
+          }
 
-          if [ -z "$ALPACA_SECRET_KEY" ]; then
-            echo "::error::Missing ALPACA_SECRET_KEY secret"
+          test -n "$ALPACA_SECRET_KEY" || {
+            echo "ALPACA_SECRET_KEY is missing"
             exit 1
-          fi
+          }
 
-      - name: Run full Maven regression
-        run: >
-          mvn
-          --batch-mode
-          --no-transfer-progress
-          clean
-          test
+      - name: Start controlled UI lab
+        shell: bash
+        run: |
+          nohup python3 -m http.server 8081 \
+            --directory ui-lab \
+            > /tmp/ui-lab.log 2>&1 &
+
+          echo $! > /tmp/ui-lab.pid
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 10 \
+            --retry-delay 1 \
+            http://127.0.0.1:8081/ \
+            > /dev/null
+
+      - name: Run API and UI regression
+        run: |
+          mvn \
+            --batch-mode \
+            --no-transfer-progress \
+            clean test
+
+      - name: Show UI server log on failure
+        if: failure()
+        shell: bash
+        run: |
+          cat /tmp/ui-lab.log || true

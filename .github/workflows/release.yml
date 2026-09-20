@@ -4,17 +4,11 @@ on:
   push:
     tags:
       - 'v*'
-
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 jobs:
-  release-quality-gate:
-    name: Release Quality Gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  quality-gate:
+    runs-on: ubuntu-24.04
 
     env:
       TEST_ENV: paper
@@ -22,44 +16,53 @@ jobs:
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
 
+      UI_BASE_URL: http://127.0.0.1:8081
+      HEADLESS: "true"
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Set up Java 21
+      - name: Setup Java
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       - name: Validate required secrets
         shell: bash
         run: |
-          if [ -z "$ALPACA_API_KEY" ]; then
-            echo "::error::Missing ALPACA_API_KEY secret"
-            exit 1
-          fi
+          test -n "$ALPACA_API_KEY"
+          test -n "$ALPACA_SECRET_KEY"
 
-          if [ -z "$ALPACA_SECRET_KEY" ]; then
-            echo "::error::Missing ALPACA_SECRET_KEY secret"
-            exit 1
-          fi
+      - name: Start controlled UI lab
+        shell: bash
+        run: |
+          nohup python3 -m http.server 8081 \
+            --directory ui-lab \
+            > /tmp/ui-lab.log 2>&1 &
 
-      - name: Run release regression
-        run: >
-          mvn
-          --batch-mode
-          --no-transfer-progress
-          clean
-          test
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 10 \
+            --retry-delay 1 \
+            http://127.0.0.1:8081/ \
+            > /dev/null
 
-      - name: Upload release test reports
+      - name: Run release quality gate
+        run: |
+          mvn \
+            --batch-mode \
+            --no-transfer-progress \
+            clean test
+
+      - name: Upload release reports
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: release-surefire-reports
-          path: |
-            **/target/surefire-reports/**
-          if-no-files-found: warn
+          path: '**/target/surefire-reports/**'
           retention-days: 30

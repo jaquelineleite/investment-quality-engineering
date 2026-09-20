@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Investment QE Lab</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        section {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1 data-testid="app-title">
+    Investment Quality Engineering Lab
+</h1>
+
+<section id="login-section">
+
+    <h2>Login</h2>
+
+    <input
+        id="username"
+        data-testid="username"
+        placeholder="Usuário"
+    >
+
+    <input
+        id="password"
+        data-testid="password"
+        type="password"
+        placeholder="Senha"
+    >
+
+    <button
+        data-testid="login-button"
+        onclick="login()">
+        Entrar
+    </button>
+
+    <p data-testid="login-error"></p>
+
+</section>
+
+
+<div id="dashboard" class="hidden">
+
+    <section>
+
+        <h2 data-testid="dashboard-title">
+            Portfolio Dashboard
+        </h2>
+
+        <p>
+            Saldo disponível:
+            <strong data-testid="available-balance">
+                $100,000.00
+            </strong>
+        </p>
+
+        <p>
+            Status:
+            <strong data-testid="portfolio-status">
+                ACTIVE
+            </strong>
+        </p>
+
+    </section>
+
+
+    <section>
+
+        <h3>Ativos</h3>
+
+        <input
+            id="symbol"
+            data-testid="asset-symbol"
+            placeholder="Ex: AAPL"
+        >
+
+        <button
+            data-testid="search-asset-button"
+            onclick="searchAsset()">
+            Buscar ativo
+        </button>
+
+        <p data-testid="asset-result"></p>
+
+    </section>
+
+
+    <section>
+
+        <h3>Nova ordem</h3>
+
+        <input
+            id="quantity"
+            data-testid="order-quantity"
+            type="number"
+            placeholder="Quantidade"
+        >
+
+        <button
+            data-testid="buy-button"
+            onclick="createOrder()">
+            Comprar
+        </button>
+
+        <p data-testid="order-result"></p>
+
+    </section>
+
+
+    <section>
+
+        <h3>Posições</h3>
+
+        <p data-testid="positions-result">
+            Nenhuma posição aberta
+        </p>
+
+    </section>
+
+</div>
+
+
+<script>
+
+function login() {
+
+    const username =
+        document.getElementById("username").value;
+
+    const password =
+        document.getElementById("password").value;
+
+    if (
+        username === "qa.user" &&
+        password === "Quality123!"
+    ) {
+
+        document
+            .getElementById("login-section")
+            .classList.add("hidden");
+
+        document
+            .getElementById("dashboard")
+            .classList.remove("hidden");
+
+    } else {
+
+        document.querySelector(
+            "[data-testid='login-error']"
+        ).innerText =
+            "Usuário ou senha inválidos";
+    }
+}
+
+
+function searchAsset() {
+
+    const symbol =
+        document
+            .getElementById("symbol")
+            .value
+            .trim()
+            .toUpperCase();
+
+    const result =
+        document.querySelector(
+            "[data-testid='asset-result']"
+        );
+
+    if (symbol === "AAPL") {
+
+        result.innerText =
+            "AAPL - Apple Inc. - Tradable";
+
+    } else {
+
+        result.innerText =
+            "Ativo não encontrado";
+    }
+}
+
+
+function createOrder() {
+
+    const symbol =
+        document
+            .getElementById("symbol")
+            .value
+            .trim()
+            .toUpperCase();
+
+    const quantity =
+        Number(
+            document
+                .getElementById("quantity")
+                .value
+        );
+
+    const orderResult =
+        document.querySelector(
+            "[data-testid='order-result']"
+        );
+
+    const positions =
+        document.querySelector(
+            "[data-testid='positions-result']"
+        );
+
+    if (
+        symbol === "AAPL" &&
+        quantity > 0
+    ) {
+
+        orderResult.innerText =
+            `Ordem criada: BUY ${quantity} ${symbol}`;
+
+        positions.innerText =
+            `${symbol} - ${quantity} shares`;
+
+    } else {
+
+        orderResult.innerText =
+            "Dados da ordem inválidos";
+    }
+}
+
+</script>
+
+</body>
+</html>
