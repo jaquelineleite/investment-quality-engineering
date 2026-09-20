@@ -26,6 +26,11 @@ jobs:
       DB_USER: iqe_user
       DB_PASSWORD: iqe_password
 
+      RABBITMQ_HOST: 127.0.0.1
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: iqe_user
+      RABBITMQ_PASSWORD: iqe_password
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -89,6 +94,32 @@ jobs:
           docker logs investment-qe-postgres || true
           exit 1
 
+
+      - name: Start RabbitMQ test broker
+        shell: bash
+        run: |
+          docker compose \
+            -f infrastructure/docker/rabbitmq/docker-compose.yml \
+            up -d
+
+          for attempt in {1..30}; do
+
+            STATUS=$(docker inspect \
+              -f '{{.State.Health.Status}}' \
+              investment-qe-rabbitmq \
+              2>/dev/null || true)
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "RabbitMQ is ready."
+              exit 0
+            fi
+
+            echo "Waiting for RabbitMQ... ${attempt}/30"
+            sleep 1
+          done
+
+          docker logs investment-qe-rabbitmq || true
+          exit 1
       - name: Run nightly regression
         run: |
           mvn \
@@ -104,6 +135,13 @@ jobs:
           path: '**/target/surefire-reports/**'
           retention-days: 14
 
+      - name: Stop RabbitMQ
+        if: always()
+        shell: bash
+        run: |
+          docker compose \
+            -f infrastructure/docker/rabbitmq/docker-compose.yml \
+            down -v
       - name: Stop PostgreSQL
         if: always()
         shell: bash
