@@ -137,6 +137,28 @@ jobs:
           path: '**/target/surefire-reports/**'
           retention-days: 14
 
+
+      - name: Generate test observability summary
+        if: always()
+        run: python3 scripts/reporting/generate_test_summary.py
+
+      - name: Publish test observability summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f reports/observability/test-summary.md ]; then
+            cat reports/observability/test-summary.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload quality evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-regression-evidence
+          path: |
+            reports/observability/
+            **/target/surefire-reports/
+          retention-days: 14
       - name: Stop RabbitMQ
         if: always()
         shell: bash
