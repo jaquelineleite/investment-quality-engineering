@@ -77,3 +77,6 @@ desktop.ini
 *.temp
 *.swp
 *~
+# Generated observability reports
+reports/observability/test-summary.md
+reports/observability/test-summary.json
