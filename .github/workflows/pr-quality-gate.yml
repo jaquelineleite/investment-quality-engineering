@@ -11,10 +11,10 @@ permissions:
   contents: read
 
 jobs:
+
   api-quality-gate:
-    name: API Quality Gate
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+
+    runs-on: ubuntu-24.04
 
     env:
       TEST_ENV: paper
@@ -23,37 +23,38 @@ jobs:
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
 
     steps:
-      - name: Checkout repository
+
+      - name: Checkout
         uses: actions/checkout@v7
 
-
       - name: Security gate - tracked secrets
-        run: python3 scripts/security/security_gate.py      - name: Set up Java 21
+        run: python3 scripts/security/security_gate.py
+
+      - name: Setup Java
         uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
           cache: maven
 
       - name: Validate required secrets
         shell: bash
         run: |
           if [ -z "$ALPACA_API_KEY" ]; then
-            echo "::error::Missing ALPACA_API_KEY secret"
+            echo "ALPACA_API_KEY is not configured."
             exit 1
           fi
 
           if [ -z "$ALPACA_SECRET_KEY" ]; then
-            echo "::error::Missing ALPACA_SECRET_KEY secret"
+            echo "ALPACA_SECRET_KEY is not configured."
             exit 1
           fi
 
+          echo "Required secrets are configured."
+
       - name: Run API quality gate
-        run: >
-          mvn
-          --batch-mode
-          --no-transfer-progress
-          -pl api-tests
-          -am
-          clean
-          test
+        run: |
+          mvn \
+            -pl api-tests \
+            -am \
+            clean test
