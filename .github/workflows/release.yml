@@ -19,6 +19,10 @@ jobs:
       UI_BASE_URL: http://127.0.0.1:8081
       HEADLESS: "true"
 
+      DB_URL: jdbc:postgresql://127.0.0.1:5433/investment_qe
+      DB_USER: iqe_user
+      DB_PASSWORD: iqe_password
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -43,28 +47,45 @@ jobs:
             --directory ui-lab \
             > /tmp/ui-lab.log 2>&1 &
 
-          echo $! > /tmp/ui-lab.pid
-
           for attempt in {1..15}; do
-
-            if curl \
-              --fail \
-              --silent \
+            if curl --fail --silent \
               http://127.0.0.1:8081/ \
               > /dev/null; then
-
               echo "UI lab is ready."
               exit 0
-
             fi
 
-            echo "Waiting for UI lab... attempt ${attempt}/15"
             sleep 1
           done
 
-          echo "UI lab failed to start."
           cat /tmp/ui-lab.log || true
           exit 1
+
+      - name: Start PostgreSQL test database
+        shell: bash
+        run: |
+          docker compose \
+            -f infrastructure/docker/postgres/docker-compose.yml \
+            up -d
+
+          for attempt in {1..30}; do
+
+            STATUS=$(docker inspect \
+              -f '{{.State.Health.Status}}' \
+              investment-qe-postgres \
+              2>/dev/null || true)
+
+            if [ "$STATUS" = "healthy" ]; then
+              echo "PostgreSQL is ready."
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          docker logs investment-qe-postgres || true
+          exit 1
+
       - name: Run release quality gate
         run: |
           mvn \
@@ -79,3 +100,11 @@ jobs:
           name: release-surefire-reports
           path: '**/target/surefire-reports/**'
           retention-days: 30
+
+      - name: Stop PostgreSQL
+        if: always()
+        shell: bash
+        run: |
+          docker compose \
+            -f infrastructure/docker/postgres/docker-compose.yml \
+            down -v

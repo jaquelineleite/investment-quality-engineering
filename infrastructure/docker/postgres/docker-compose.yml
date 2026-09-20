@@ -1,0 +1,28 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: investment-qe-postgres
+
+    environment:
+      POSTGRES_DB: investment_qe
+      POSTGRES_USER: iqe_user
+      POSTGRES_PASSWORD: iqe_password
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U iqe_user -d investment_qe"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+    restart: unless-stopped
